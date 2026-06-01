@@ -1,0 +1,2153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AD Client Joining &amp; Group Policy Administration</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg-primary:#0a0e17;
+--bg-secondary:#0f1420;
+--bg-card:#111827;
+--bg-card-hover:#1a2235;
+--bg-glass:rgba(17,24,39,0.75);
+--border-subtle:#1e293b;
+--border-accent:#1d4ed8;
+--text-primary:#e2e8f0;
+--text-secondary:#94a3b8;
+--text-muted:#64748b;
+--accent-blue:#3b82f6;
+--accent-blue-bright:#60a5fa;
+--accent-blue-dark:#1d4ed8;
+--accent-cyan:#06b6d4;
+--accent-green:#22c55e;
+--accent-amber:#f59e0b;
+--accent-red:#ef4444;
+--accent-purple:#8b5cf6;
+--shadow-glow:0 0 30px rgba(59,130,246,0.08);
+--radius-sm:6px;
+--radius-md:10px;
+--radius-lg:16px;
+--radius-xl:20px;
+--font-sans:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
+--font-mono:'JetBrains Mono','Cascadia Code','Fira Code',monospace
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{
+font-family:var(--font-sans);
+background:var(--bg-primary);
+color:var(--text-primary);
+line-height:1.7;
+overflow-x:hidden;
+-webkit-font-smoothing:antialiased
+}
+::selection{background:rgba(59,130,246,0.3);color:#fff}
+::-webkit-scrollbar{width:8px}
+::-webkit-scrollbar-track{background:var(--bg-primary)}
+::-webkit-scrollbar-thumb{background:#1e293b;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#334155}
+
+/* Hero */
+.hero{
+min-height:100vh;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+text-align:center;
+padding:40px 24px;
+position:relative;
+overflow:hidden;
+background:
+radial-gradient(ellipse 80% 60% at 50% 40%, rgba(29,78,216,0.08) 0%, transparent 70%),
+radial-gradient(ellipse 60% 40% at 70% 60%, rgba(6,182,212,0.05) 0%, transparent 60%),
+var(--bg-primary)
+}
+.hero-grid{
+position:absolute;
+inset:0;
+background-image:
+linear-gradient(rgba(30,41,59,0.15) 1px, transparent 1px),
+linear-gradient(90deg, rgba(30,41,59,0.15) 1px, transparent 1px);
+background-size:60px 60px;
+pointer-events:none
+}
+.hero::after{
+content:'';
+position:absolute;
+top:0;left:0;right:0;height:1px;
+background:linear-gradient(90deg,transparent,var(--accent-blue),transparent)
+}
+.hero-badge{
+display:inline-flex;
+align-items:center;
+gap:8px;
+padding:6px 16px;
+background:rgba(59,130,246,0.1);
+border:1px solid rgba(59,130,246,0.2);
+border-radius:100px;
+font-size:0.8rem;
+color:var(--accent-blue-bright);
+margin-bottom:28px;
+letter-spacing:0.3px
+}
+.hero h1{
+font-size:clamp(2.2rem,6vw,4.2rem);
+font-weight:800;
+letter-spacing:-0.03em;
+line-height:1.1;
+margin-bottom:20px;
+background:linear-gradient(135deg,#f0f9ff 0%,#60a5fa 50%,#3b82f6 100%);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+background-clip:text
+}
+.hero p{
+font-size:clamp(1rem,2vw,1.2rem);
+color:var(--text-secondary);
+max-width:660px;
+margin:0 auto 32px;
+line-height:1.8
+}
+.hero-meta{
+display:flex;
+flex-wrap:wrap;
+gap:12px;
+justify-content:center;
+margin-bottom:40px
+}
+.hero-meta span{
+padding:5px 14px;
+background:var(--bg-card);
+border:1px solid var(--border-subtle);
+border-radius:100px;
+font-size:0.78rem;
+color:var(--text-muted);
+display:flex;align-items:center;gap:6px
+}
+.hero-cta{
+display:inline-flex;
+align-items:center;gap:10px;
+padding:14px 32px;
+background:linear-gradient(135deg,var(--accent-blue-dark),var(--accent-blue));
+color:#fff;
+border:none;
+border-radius:var(--radius-md);
+font-size:0.95rem;
+font-weight:600;
+cursor:pointer;
+transition:all 0.25s ease;
+text-decoration:none;
+font-family:var(--font-sans)
+}
+.hero-cta:hover{
+transform:translateY(-2px);
+box-shadow:0 8px 30px rgba(59,130,246,0.3)
+}
+.hero-stats{
+display:flex;
+gap:48px;
+margin-top:48px;
+padding-top:32px;
+border-top:1px solid var(--border-subtle)
+}
+.hero-stats div{text-align:center}
+.hero-stats .num{
+font-size:1.8rem;
+font-weight:700;
+color:var(--accent-blue-bright)
+}
+.hero-stats .lbl{
+font-size:0.78rem;
+color:var(--text-muted);
+text-transform:uppercase;
+letter-spacing:1px;
+margin-top:2px
+}
+
+/* Wrapper */
+.wrapper{max-width:1120px;margin:0 auto;padding:0 24px}
+
+/* Section General */
+.section{
+padding:80px 0;
+border-bottom:1px solid var(--border-subtle)
+}
+.section:last-child{border-bottom:none}
+.section-header{
+margin-bottom:40px;
+text-align:center
+}
+.section-number{
+display:inline-flex;
+align-items:center;justify-content:center;
+width:40px;height:40px;
+border-radius:var(--radius-md);
+background:linear-gradient(135deg,rgba(59,130,246,0.15),rgba(6,182,212,0.1));
+border:1px solid rgba(59,130,246,0.2);
+font-size:0.85rem;font-weight:700;
+color:var(--accent-blue-bright);
+margin-bottom:16px;
+font-family:var(--font-mono)
+}
+.section-header h2{
+font-size:clamp(1.4rem,3vw,2rem);
+font-weight:700;
+letter-spacing:-0.02em;
+margin-bottom:12px;
+color:var(--text-primary)
+}
+.section-header p{
+color:var(--text-secondary);
+font-size:1rem;
+max-width:640px;
+margin:0 auto
+}
+
+/* Cards */
+.card{
+background:var(--bg-card);
+border:1px solid var(--border-subtle);
+border-radius:var(--radius-lg);
+padding:28px 32px;
+margin-bottom:16px;
+transition:all 0.2s ease
+}
+.card:hover{border-color:rgba(59,130,246,0.2)}
+.card-header{
+display:flex;align-items:flex-start;gap:14px;margin-bottom:16px
+}
+.card-icon{
+flex-shrink:0;
+width:36px;height:36px;
+border-radius:var(--radius-sm);
+display:flex;align-items:center;justify-content:center;
+font-size:1rem;font-weight:700
+}
+.card-icon.blue{background:rgba(59,130,246,0.12);color:var(--accent-blue-bright)}
+.card-icon.green{background:rgba(34,197,94,0.12);color:var(--accent-green)}
+.card-icon.amber{background:rgba(245,158,11,0.12);color:var(--accent-amber)}
+.card-icon.red{background:rgba(239,68,68,0.12);color:var(--accent-red)}
+.card-icon.purple{background:rgba(139,92,246,0.12);color:var(--accent-purple)}
+.card-icon.cyan{background:rgba(6,182,212,0.12);color:var(--accent-cyan)}
+.card-title{font-size:1.05rem;font-weight:600;margin-bottom:4px}
+.card-desc{color:var(--text-secondary);font-size:0.9rem;line-height:1.7}
+.card-body{padding-top:8px}
+
+/* Warning / Info */
+.warning-card{
+background:rgba(239,68,68,0.06);
+border:1px solid rgba(239,68,68,0.2);
+border-radius:var(--radius-md);
+padding:20px 24px;
+margin-bottom:16px;
+display:flex;gap:14px;align-items:flex-start
+}
+.warning-card .icon{color:var(--accent-red);font-size:1.2rem;flex-shrink:0;margin-top:2px}
+.warning-card .content{font-size:0.9rem;color:var(--text-secondary)}
+.warning-card .content strong{color:var(--accent-red)}
+.info-card{
+background:rgba(59,130,246,0.06);
+border:1px solid rgba(59,130,246,0.2);
+border-radius:var(--radius-md);
+padding:20px 24px;
+margin-bottom:16px;
+display:flex;gap:14px;align-items:flex-start
+}
+.info-card .icon{color:var(--accent-blue);font-size:1.2rem;flex-shrink:0;margin-top:2px}
+.info-card .content{font-size:0.9rem;color:var(--text-secondary)}
+.info-card .content strong{color:var(--accent-blue-bright)}
+.success-card{
+background:rgba(34,197,94,0.06);
+border:1px solid rgba(34,197,94,0.2);
+border-radius:var(--radius-md);
+padding:20px 24px;
+margin-bottom:16px;
+display:flex;gap:14px;align-items:flex-start
+}
+.success-card .icon{color:var(--accent-green);font-size:1.2rem;flex-shrink:0;margin-top:2px}
+.success-card .content{font-size:0.9rem;color:var(--text-secondary)}
+.success-card .content strong{color:var(--accent-green)}
+
+/* Command Block */
+.cmd-block{
+background:#0d1117;
+border:1px solid #1e293b;
+border-radius:var(--radius-md);
+margin:16px 0;
+overflow:hidden
+}
+.cmd-header{
+display:flex;align-items:center;justify-content:space-between;
+padding:10px 16px;
+background:#0d1117;
+border-bottom:1px solid #1e293b;
+font-size:0.75rem;
+color:var(--text-muted);
+text-transform:uppercase;
+letter-spacing:0.5px
+}
+.cmd-body{
+padding:16px;
+overflow-x:auto;
+font-family:var(--font-mono);
+font-size:0.85rem;
+line-height:1.8;
+color:#e2e8f0;
+white-space:pre-wrap;
+word-break:break-all
+}
+.cmd-prompt{color:#22c55e}
+.cmd-output{color:#94a3b8}
+.cmd-cursor{display:inline-block;width:8px;height:1.1em;background:var(--accent-blue);animation:blink 1s step-end infinite;vertical-align:text-bottom}
+@keyframes blink{50%{opacity:0}}
+
+/* Tables */
+.table-wrap{overflow-x:auto;margin:16px 0;border-radius:var(--radius-md);border:1px solid var(--border-subtle)}
+table{width:100%;border-collapse:collapse;font-size:0.88rem}
+thead{background:rgba(30,41,59,0.5)}
+th{padding:12px 16px;text-align:left;font-weight:600;color:var(--text-secondary);font-size:0.78rem;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border-subtle)}
+td{padding:12px 16px;border-bottom:1px solid var(--border-subtle);color:var(--text-secondary)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(30,41,59,0.3)}
+
+/* VS Comparison */
+.vs-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+.vs-card{padding:24px;border-radius:var(--radius-md);text-align:center}
+.vs-card.fail{background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2)}
+.vs-card.pass{background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2)}
+.vs-card .vs-icon{font-size:1.8rem;margin-bottom:8px;font-weight:700}
+.vs-card .vs-title{font-size:1rem;font-weight:600;margin-bottom:8px}
+.vs-card .vs-list{list-style:none;font-size:0.85rem;color:var(--text-secondary);text-align:left}
+.vs-card .vs-list li{padding:4px 0;display:flex;align-items:center;gap:8px}
+
+/* Step List */
+.steps{margin:12px 0;padding:0;list-style:none;counter-reset:step}
+.steps li{
+counter-increment:step;
+padding:10px 0 10px 44px;
+position:relative;
+color:var(--text-secondary);
+font-size:0.9rem;
+line-height:1.7;
+min-height:36px
+}
+.steps li::before{
+content:counter(step);
+position:absolute;left:0;top:10px;
+width:28px;height:28px;
+border-radius:var(--radius-sm);
+background:rgba(59,130,246,0.1);
+border:1px solid rgba(59,130,246,0.2);
+display:flex;align-items:center;justify-content:center;
+font-size:0.75rem;font-weight:600;
+color:var(--accent-blue-bright);
+font-family:var(--font-mono)
+}
+.steps li strong{color:var(--text-primary)}
+
+/* Step Grid */
+.step-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+.step-card{
+background:var(--bg-card);
+border:1px solid var(--border-subtle);
+border-radius:var(--radius-md);
+padding:18px 20px;
+font-size:0.88rem;
+color:var(--text-secondary);
+display:flex;gap:12px;align-items:flex-start
+}
+.step-card .num{
+flex-shrink:0;
+width:26px;height:26px;
+border-radius:var(--radius-sm);
+background:rgba(59,130,246,0.1);
+border:1px solid rgba(59,130,246,0.2);
+display:flex;align-items:center;justify-content:center;
+font-size:0.72rem;font-weight:600;
+color:var(--accent-blue-bright);
+font-family:var(--font-mono)
+}
+.step-card .txt{flex:1}
+.step-card .txt strong{color:var(--text-primary);display:block;margin-bottom:2px}
+.step-card .desc{color:var(--text-muted);font-size:0.82rem;margin-top:2px}
+
+/* Diagram */
+.diagram-box{
+background:var(--bg-card);
+border:1px solid var(--border-subtle);
+border-radius:var(--radius-lg);
+padding:32px 24px;
+margin:20px 0;
+overflow-x:auto
+}
+.diagram-inner{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:280px}
+.diagram-node{
+padding:10px 20px;
+border-radius:var(--radius-sm);
+font-size:0.85rem;
+font-weight:600;
+text-align:center;
+min-width:140px
+}
+.diagram-node.server{
+background:rgba(59,130,246,0.12);
+border:1px solid rgba(59,130,246,0.3);
+color:var(--accent-blue-bright)
+}
+.diagram-node.client{
+background:rgba(6,182,212,0.1);
+border:1px solid rgba(6,182,212,0.3);
+color:var(--accent-cyan)
+}
+.diagram-node.dns{
+background:rgba(139,92,246,0.1);
+border:1px solid rgba(139,92,246,0.3);
+color:var(--accent-purple)
+}
+.diagram-node.gpo{
+background:rgba(245,158,11,0.1);
+border:1px solid rgba(245,158,11,0.3);
+color:var(--accent-amber)
+}
+.diagram-node.user{
+background:rgba(34,197,94,0.1);
+border:1px solid rgba(34,197,94,0.3);
+color:var(--accent-green)
+}
+.diagram-arrow{color:var(--text-muted);font-size:0.75rem;letter-spacing:2px}
+.diagram-arrow-svg{display:flex;flex-direction:column;align-items:center;gap:2px}
+.diagram-arrow-svg svg{width:24px;height:20px}
+.diagram-label{font-size:0.72rem;color:var(--text-muted);margin-top:4px}
+.diagram-horiz{display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:center}
+.diagram-horiz .diagram-node{min-width:120px}
+
+/* Expandable */
+.expand{
+border:1px solid var(--border-subtle);
+border-radius:var(--radius-md);
+margin-bottom:12px;
+overflow:hidden;
+background:var(--bg-card)
+}
+.expand-trigger{
+width:100%;
+padding:16px 20px;
+background:transparent;
+border:none;
+color:var(--text-primary);
+font-size:0.92rem;
+font-weight:500;
+font-family:var(--font-sans);
+cursor:pointer;
+text-align:left;
+display:flex;align-items:center;justify-content:space-between;
+transition:background 0.2s
+}
+.expand-trigger:hover{background:rgba(30,41,59,0.3)}
+.expand-trigger .arrow{
+transition:transform 0.3s ease;
+font-size:0.75rem;color:var(--text-muted)
+}
+.expand.open .expand-trigger .arrow{transform:rotate(180deg)}
+.expand-body{
+max-height:0;padding:0 20px;
+overflow:hidden;
+transition:all 0.35s ease;
+color:var(--text-secondary);
+font-size:0.9rem;
+line-height:1.7
+}
+.expand.open .expand-body{
+max-height:2000px;
+padding:0 20px 20px
+}
+.expand-subtitle{
+font-size:0.82rem;color:var(--text-muted);margin-top:2px
+}
+
+/* Architecture Visual */
+.arch{display:flex;flex-direction:column;align-items:center;gap:6px;padding:20px 0}
+.arch-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center}
+.arch-box{
+padding:14px 28px;
+border-radius:var(--radius-md);
+font-size:0.85rem;font-weight:600;
+text-align:center;min-width:120px
+}
+.arch-box.dc{
+background:linear-gradient(135deg,rgba(29,78,216,0.2),rgba(59,130,246,0.1));
+border:1px solid rgba(59,130,246,0.3);
+color:#60a5fa
+}
+.arch-box.ad{
+background:linear-gradient(135deg,rgba(139,92,246,0.2),rgba(99,102,241,0.1));
+border:1px solid rgba(139,92,246,0.3);
+color:#a78bfa
+}
+.arch-box.gpo{
+background:linear-gradient(135deg,rgba(245,158,11,0.2),rgba(234,179,8,0.1));
+border:1px solid rgba(245,158,11,0.3);
+color:#fbbf24
+}
+.arch-box.pc{
+background:linear-gradient(135deg,rgba(6,182,212,0.2),rgba(14,116,144,0.1));
+border:1px solid rgba(6,182,212,0.3);
+color:#22d3ee
+}
+.arch-box.ou{
+background:linear-gradient(135deg,rgba(34,197,94,0.2),rgba(22,163,74,0.1));
+border:1px solid rgba(34,197,94,0.3);
+color:#4ade80
+}
+.arch-arrow{color:var(--text-muted);font-size:0.7rem}
+
+/* Tab Container */
+.tabs{display:flex;border-bottom:1px solid var(--border-subtle);margin-bottom:20px;gap:4px;overflow-x:auto}
+.tab-btn{
+padding:10px 20px;
+background:transparent;
+border:none;
+color:var(--text-muted);
+font-family:var(--font-sans);
+font-size:0.85rem;font-weight:500;
+cursor:pointer;
+border-bottom:2px solid transparent;
+transition:all 0.2s;
+white-space:nowrap
+}
+.tab-btn:hover{color:var(--text-primary)}
+.tab-btn.active{color:var(--accent-blue-bright);border-bottom-color:var(--accent-blue)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* Tag Pills */
+.tag{
+display:inline-block;
+padding:2px 10px;
+border-radius:100px;
+font-size:0.72rem;
+font-weight:600;
+margin:2px
+}
+.tag.blue{background:rgba(59,130,246,0.1);color:var(--accent-blue-bright);border:1px solid rgba(59,130,246,0.2)}
+.tag.green{background:rgba(34,197,94,0.1);color:var(--accent-green);border:1px solid rgba(34,197,94,0.2)}
+.tag.red{background:rgba(239,68,68,0.1);color:var(--accent-red);border:1px solid rgba(239,68,68,0.2)}
+.tag.amber{background:rgba(245,158,11,0.1);color:var(--accent-amber);border:1px solid rgba(245,158,11,0.2)}
+.tag.purple{background:rgba(139,92,246,0.1);color:var(--accent-purple);border:1px solid rgba(139,92,246,0.2)}
+
+/* Shortcut */
+kbd{
+display:inline-block;
+padding:2px 7px;
+font-family:var(--font-mono);
+font-size:0.75rem;
+background:#0d1117;
+border:1px solid var(--border-subtle);
+border-radius:4px;
+color:var(--text-secondary)
+}
+
+/* Scroll Nav */
+.scroll-nav{
+position:fixed;top:0;left:0;right:0;
+height:48px;
+background:rgba(10,14,23,0.85);
+backdrop-filter:blur(12px);
+-webkit-backdrop-filter:blur(12px);
+border-bottom:1px solid var(--border-subtle);
+z-index:100;
+display:flex;align-items:center;
+overflow-x:auto;
+padding:0 16px;
+gap:4px;
+display:none
+}
+.scroll-nav.show{display:flex}
+.scroll-nav a{
+flex-shrink:0;
+padding:6px 14px;
+font-size:0.75rem;
+color:var(--text-muted);
+text-decoration:none;
+border-radius:var(--radius-sm);
+transition:all 0.2s;
+white-space:nowrap
+}
+.scroll-nav a:hover,.scroll-nav a.active{background:rgba(59,130,246,0.1);color:var(--accent-blue-bright)}
+
+/* Key Combo */
+.key-combo{display:inline-flex;align-items:center;gap:4px}
+.key-combo kbd+span{color:var(--text-muted);font-size:0.8rem;margin:0 2px}
+
+/* Cmd simulate */
+.cmd-sim{background:#0d1117;border:1px solid #1e293b;border-radius:var(--radius-md);margin:16px 0;overflow:hidden}
+.cmd-sim-header{padding:10px 16px;background:#0d1117;border-bottom:1px solid #1e293b;display:flex;justify-content:space-between;align-items:center}
+.cmd-sim-title{font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px}
+.cmd-sim-run{
+padding:4px 14px;font-size:0.75rem;
+background:rgba(59,130,246,0.15);color:var(--accent-blue-bright);
+border:1px solid rgba(59,130,246,0.25);border-radius:4px;
+cursor:pointer;font-family:var(--font-sans);transition:all 0.2s
+}
+.cmd-sim-run:hover{background:rgba(59,130,246,0.25)}
+.cmd-sim-body{padding:16px;font-family:var(--font-mono);font-size:0.82rem;line-height:1.8;color:var(--text-secondary);min-height:60px;white-space:pre-wrap}
+.cmd-sim-body .prompt{color:#22c55e}
+.cmd-sim-body .typing{color:#e2e8f0}
+.cmd-sim-body .result{color:#94a3b8;animation:fadeIn 0.3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* Options Grid */
+.opt-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+.opt-card{padding:16px;border-radius:var(--radius-md);font-size:0.85rem}
+.opt-card.fail{background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15)}
+.opt-card.pass{background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15)}
+.opt-card .opt-title{font-weight:600;display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.opt-card .opt-desc{color:var(--text-muted);font-size:0.82rem}
+.opt-card .opt-features{list-style:none;margin-top:8px;font-size:0.8rem}
+.opt-card .opt-features li{padding:2px 0;display:flex;align-items:center;gap:6px}
+
+/* TOC */
+.toc{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:28px 32px;margin:40px 0}
+.toc-title{font-size:1rem;font-weight:600;margin-bottom:16px;color:var(--text-primary)}
+.toc-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.toc-item{
+padding:6px 10px;font-size:0.85rem;color:var(--text-secondary);text-decoration:none;
+border-radius:4px;transition:all 0.15s;display:flex;align-items:center;gap:8px
+}
+.toc-item:hover{background:rgba(59,130,246,0.08);color:var(--accent-blue-bright)}
+.toc-num{font-family:var(--font-mono);font-size:0.7rem;color:var(--text-muted);flex-shrink:0}
+
+/* Tree */
+.tree{margin:12px 0;font-family:var(--font-mono);font-size:0.82rem;line-height:1.9;color:var(--text-secondary);padding:12px 16px;background:#0d1117;border:1px solid #1e293b;border-radius:var(--radius-md)}
+.tree .highlight{color:var(--accent-blue-bright)}
+
+/* Key-Value */
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 20px;margin:12px 0;font-size:0.88rem}
+.kv dt{color:var(--text-muted);font-weight:500}
+.kv dd{color:var(--text-secondary)}
+
+/* Summary Cards */
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
+.summary-item{
+padding:18px 20px;
+background:var(--bg-card);
+border:1px solid var(--border-subtle);
+border-radius:var(--radius-md);
+display:flex;gap:14px;align-items:flex-start
+}
+.summary-item .si-num{
+font-family:var(--font-mono);
+font-size:1.2rem;font-weight:700;
+color:var(--accent-blue-bright);
+flex-shrink:0;
+width:28px
+}
+.summary-item .si-text{font-size:0.85rem;color:var(--text-secondary)}
+.summary-item .si-text strong{color:var(--text-primary);display:block;margin-bottom:2px}
+
+/* Footer */
+.footer{
+text-align:center;
+padding:40px 24px;
+border-top:1px solid var(--border-subtle);
+color:var(--text-muted);
+font-size:0.8rem
+}
+.footer strong{color:var(--text-secondary)}
+
+/* Responsive */
+@media(max-width:768px){
+.section{padding:48px 0}
+.card{padding:20px}
+.vs-grid,.step-cards,.opt-grid,.summary-grid,.toc-grid{grid-template-columns:1fr}
+.hero-stats{flex-direction:column;gap:20px}
+.diagram-horiz{flex-direction:column}
+.kv{grid-template-columns:1fr}
+.step-cards{grid-template-columns:1fr}
+.scroll-nav{height:40px}
+.scroll-nav a{font-size:0.7rem;padding:4px 10px}
+}
+@media(max-width:480px){
+.hero h1{font-size:1.6rem}
+.card{padding:16px}
+.cmd-body{font-size:0.78rem}
+}
+
+/* Print */
+@media print{
+.hero{min-height:auto;padding:40px 0}
+.scroll-nav{display:none!important}
+.section{page-break-inside:auto;padding:24px 0}
+.card,.expand{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<nav class="scroll-nav" id="scrollNav"></nav>
+
+<!-- HERO -->
+<section class="hero">
+<div class="hero-grid"></div>
+<div class="hero-badge">
+  Enterprise Administration Academy
+</div>
+<h1>Active Directory Client Joining<br>&amp; Group Policy Administration</h1>
+<p>A comprehensive hands-on guide to joining Windows 10 clients to an Active Directory domain and managing enterprise-wide policies through Group Policy Objects.</p>
+<div class="hero-meta">
+  <span>Active Directory</span>
+  <span>Windows 10 Pro</span>
+  <span>Group Policy</span>
+  <span>DNS Configuration</span>
+  <span>Domain Join</span>
+</div>
+<a class="hero-cta" href="#toc">Begin Course</a>
+<div class="hero-stats">
+  <div><div class="num">23</div><div class="lbl">Sections</div></div>
+  <div><div class="num">4+</div><div class="lbl">Hours Content</div></div>
+  <div><div class="num">100%</div><div class="lbl">Hands-On</div></div>
+</div>
+</section>
+
+<div class="wrapper">
+
+<!-- TOC -->
+<div class="toc" id="toc">
+<div class="toc-title">Course Contents</div>
+<div class="toc-grid" id="tocGrid"></div>
+</div>
+
+<!-- SECTION 1 -->
+<section class="section" id="sec1">
+<div class="section-header">
+<div class="section-number">01</div>
+<h2>Introduction to Enterprise Client Management</h2>
+<p>Understanding why organizations use Active Directory and how centralized management transforms enterprise IT operations.</p>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon blue">&#9432;</div>
+<div class="card-title">The Enterprise Challenge</div>
+</div>
+<div class="card-desc">
+Imagine you are the IT administrator for a company with 500 employees. Each employee has a Windows 10 workstation. You need to ensure every machine has the same password policy, the same desktop wallpaper, the same security restrictions, and the same software configuration.
+</div>
+<div class="card-body">
+<p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:12px">Ask yourself:</p>
+<ul style="list-style:none;font-size:0.88rem;color:var(--text-secondary)">
+<li style="padding:6px 0;display:flex;align-items:center;gap:10px"><span style="color:var(--accent-red);font-weight:700">&#10007;</span> Would you manually configure passwords on 500 computers?</li>
+<li style="padding:6px 0;display:flex;align-items:center;gap:10px"><span style="color:var(--accent-red);font-weight:700">&#10007;</span> Would you manually set wallpapers on 500 computers?</li>
+<li style="padding:6px 0;display:flex;align-items:center;gap:10px"><span style="color:var(--accent-red);font-weight:700">&#10007;</span> Would you manually apply restrictions on 500 computers?</li>
+</ul>
+</div>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon green">&#10003;</div>
+<div class="card-title">The Solution: Centralized Management</div>
+</div>
+<div class="card-desc">
+Active Directory and Group Policy provide a centralized management framework. You configure policies once on the Domain Controller, and they automatically apply to every client machine in the organization.
+</div>
+</div>
+
+<div class="arch">
+<div class="arch-row"><div class="arch-box dc">Domain Controller</div></div>
+<div class="arch-arrow">&#9660;</div>
+<div class="arch-row"><div class="arch-box ad">Active Directory</div></div>
+<div class="arch-arrow">&#9660;</div>
+<div class="arch-row"><div class="arch-box gpo">Group Policy</div></div>
+<div class="arch-arrow">&#9660;</div>
+<div class="arch-row">
+<div class="arch-box pc">PC 1</div>
+<div class="arch-box pc">PC 2</div>
+<div class="arch-box pc">PC 3</div>
+<div class="arch-box pc">PC N</div>
+</div>
+</div>
+
+<div class="info-card">
+<div class="icon">&#9432;</div>
+<div class="content"><strong>Key Concept:</strong> With centralized management, one administrator can configure policies once and have them apply to hundreds or thousands of machines automatically. This is the foundation of enterprise IT administration.</div>
+</div>
+</section>
+
+<!-- SECTION 2 -->
+<section class="section" id="sec2">
+<div class="section-header">
+<div class="section-number">02</div>
+<h2>Active Directory Architecture Overview</h2>
+<p>Understanding the components of Active Directory and how they communicate within the enterprise network.</p>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon blue">&#9733;</div>
+<div class="card-title">Architecture Components</div>
+</div>
+<div class="card-desc" style="margin-bottom:12px">
+Active Directory is built on several core components that work together to provide authentication, authorization, and policy management.
+</div>
+<table>
+<thead><tr><th>Component</th><th>Role</th><th>Details</th></tr></thead>
+<tbody>
+<tr><td>Domain Controller</td><td>Authentication Server</td><td>Hosts AD DS, authenticates users and computers</td></tr>
+<tr><td>DNS</td><td>Name Resolution</td><td>Resolves domain names to IP addresses</td></tr>
+<tr><td>Users</td><td>Identity Objects</td><td>Represent people who need network access</td></tr>
+<tr><td>Groups</td><td>Security Collections</td><td>Simplify permission management</td></tr>
+<tr><td>Computers</td><td>Machine Objects</td><td>Represent joined workstations</td></tr>
+<tr><td>OUs</td><td>Organizational Units</td><td>Containers for organizing objects</td></tr>
+<tr><td>GPOs</td><td>Group Policy Objects</td><td>Policy definitions applied to OUs</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon cyan">&#8644;</div>
+<div class="card-title">Network Topology</div>
+</div>
+<div class="card-desc" style="margin-bottom:16px">Our lab environment uses the following addressing scheme on a Host-Only network:</div>
+<table>
+<thead><tr><th>System</th><th>Role</th><th>IP Address</th></tr></thead>
+<tbody>
+<tr><td>DC1</td><td>Domain Controller</td><td>192.168.56.120</td></tr>
+<tr><td>Win10-Client</td><td>Workstation</td><td>192.168.56.121</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="diagram-box">
+<div class="diagram-inner">
+<div class="diagram-node server">DC1 &middot; 192.168.56.120</div>
+<div class="diagram-arrow-svg">
+<svg viewBox="0 0 24 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v14M5 11l7 7 7-7" stroke="#64748b"/></svg>
+<span style="color:#64748b;font-size:0.7rem">Host-Only Network</span>
+</div>
+<div class="diagram-node client">Win10-Client &middot; 192.168.56.121</div>
+</div>
+</div>
+
+<div class="info-card">
+<div class="icon">&#9432;</div>
+<div class="content"><strong>Communication Flow:</strong> The client sends DNS queries and authentication requests to DC1. DC1 responds with directory information and policy data. Both systems must be on the same network segment for this to work.</div>
+</div>
+</section>
+
+<!-- SECTION 3 -->
+<section class="section" id="sec3">
+<div class="section-header">
+<div class="section-number">03</div>
+<h2>Windows 10 Client Preparation</h2>
+<p>Understanding why Windows 10 Pro is required and how to prepare the virtual machine for domain joining.</p>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon red">&#9888;</div>
+<div class="card-title">Windows 10 Edition Comparison</div>
+</div>
+<div class="card-desc" style="margin-bottom:16px">Not all Windows 10 editions support domain joining. This is a critical distinction:</div>
+<div class="vs-grid">
+<div class="vs-card fail">
+<div class="vs-icon" style="color:var(--accent-red)">&#10007;</div>
+<div class="vs-title" style="color:var(--accent-red)">Windows 10 Home</div>
+<ul class="vs-list">
+<li><span style="color:var(--accent-red);font-weight:700">&#10007;</span> Cannot Join Domain</li>
+<li><span style="color:var(--accent-red);font-weight:700">&#10007;</span> No Group Policy</li>
+<li><span style="color:var(--accent-red);font-weight:700">&#10007;</span> No Remote Desktop</li>
+</ul>
+</div>
+<div class="vs-card pass">
+<div class="vs-icon" style="color:var(--accent-green)">&#10003;</div>
+<div class="vs-title" style="color:var(--accent-green)">Windows 10 Pro</div>
+<ul class="vs-list">
+<li><span style="color:var(--accent-green);font-weight:700">&#10003;</span> Domain Join Supported</li>
+<li><span style="color:var(--accent-green);font-weight:700">&#10003;</span> Group Policy Support</li>
+<li><span style="color:var(--accent-green);font-weight:700">&#10003;</span> Enterprise Features</li>
+</ul>
+</div>
+</div>
+<div class="warning-card">
+<div class="icon">&#9888;</div>
+<div class="content"><strong>Important:</strong> Always select <strong>Windows 10 Pro</strong> during installation. Windows 10 Home cannot join an Active Directory domain and will not work with Group Policy.</div>
+</div>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon blue">&#9881;</div>
+<div class="card-title">VirtualBox VM Configuration</div>
+</div>
+<div class="card-desc" style="margin-bottom:12px">Create a new virtual machine in VirtualBox with these specifications:</div>
+<table>
+<thead><tr><th>Setting</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>Name</td><td>Win10-Client</td></tr>
+<tr><td>Type</td><td>Microsoft Windows</td></tr>
+<tr><td>Version</td><td>Windows 10 (64-bit)</td></tr>
+<tr><td>RAM</td><td>4 GB (4096 MB)</td></tr>
+<tr><td>CPU</td><td>2 Cores</td></tr>
+<tr><td>Disk</td><td>50 GB (VDI)</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="step-cards">
+<div class="step-card">
+<div class="num">1</div>
+<div class="txt"><strong>Open VirtualBox</strong><div class="desc">Click "New" to create a new virtual machine</div></div>
+</div>
+<div class="step-card">
+<div class="num">2</div>
+<div class="txt"><strong>Configure Name &amp; OS</strong><div class="desc">Set name to "Win10-Client", type "Microsoft Windows", version "Windows 10 (64-bit)"</div></div>
+</div>
+<div class="step-card">
+<div class="num">3</div>
+<div class="txt"><strong>Allocate Memory</strong><div class="desc">Set RAM to 4096 MB (4 GB)</div></div>
+</div>
+<div class="step-card">
+<div class="num">4</div>
+<div class="txt"><strong>Create Virtual Disk</strong><div class="desc">Create a 50 GB virtual hard disk (VDI format recommended)</div></div>
+</div>
+<div class="step-card">
+<div class="num">5</div>
+<div class="txt"><strong>Attach ISO</strong><div class="desc">Go to Settings &rarr; Storage &rarr; Attach Windows10.iso</div></div>
+</div>
+<div class="step-card">
+<div class="num">6</div>
+<div class="txt"><strong>Boot &amp; Install</strong><div class="desc">Start the VM and begin Windows 10 Pro installation</div></div>
+</div>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon green">&#10003;</div>
+<div class="card-title">Local User Creation During Installation</div>
+</div>
+<div class="card-desc" style="margin-bottom:8px">When prompted during Windows 10 installation, create a local user account:</div>
+<table>
+<thead><tr><th>Field</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>Username</td><td>student</td></tr>
+<tr><td>Password</td><td>Student@123</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<!-- SECTION 4 -->
+<section class="section" id="sec4">
+<div class="section-header">
+<div class="section-number">04</div>
+<h2>VirtualBox Network Configuration</h2>
+<p>Configuring the Host-Only adapter so the client and domain controller can communicate.</p>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon cyan">&#8644;</div>
+<div class="card-title">Host-Only Adapter Explained</div>
+</div>
+<div class="card-desc">
+A Host-Only adapter creates a private network between the host machine and virtual machines. Both DC1 and the client must use the same Host-Only adapter to communicate with each other. This network is isolated from the physical network, making it ideal for lab environments.
+</div>
+</div>
+
+<div class="diagram-box">
+<div class="diagram-inner">
+<div class="diagram-node server">DC1<br>192.168.56.120</div>
+<div class="diagram-arrow-svg">
+<svg viewBox="0 0 24 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v14M5 11l7 7 7-7" stroke="#64748b"/></svg>
+<div class="diagram-label">VirtualBox Host-Only Network</div>
+</div>
+<div class="diagram-node client">Win10-Client<br>192.168.56.121</div>
+</div>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon blue">&#9881;</div>
+<div class="card-title">Configuration Steps</div>
+</div>
+<ol class="steps">
+<li><strong>Shut down</strong> the Win10-Client VM if it is running</li>
+<li>Open <strong>Settings</strong> for the Win10-Client VM</li>
+<li>Navigate to the <strong>Network</strong> tab</li>
+<li>Set <strong>Adapter 1</strong> to <strong>Host-Only Adapter</strong></li>
+<li>Select the same adapter used by DC1: <strong>VirtualBox Host-Only Ethernet Adapter</strong></li>
+<li>Click <strong>OK</strong> to save the changes</li>
+</ol>
+</div>
+
+<div class="info-card">
+<div class="icon">&#9432;</div>
+<div class="content"><strong>Why Host-Only?</strong> This ensures both VMs are on the same private network segment. Without this, the client cannot reach the domain controller, and domain joining will fail.</div>
+</div>
+</section>
+
+<!-- SECTION 5 -->
+<section class="section" id="sec5">
+<div class="section-header">
+<div class="section-number">05</div>
+<h2>Client IP Configuration</h2>
+<p>Assigning a static IP address and pointing DNS to the domain controller.</p>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon blue">&#9881;</div>
+<div class="card-title">Static IP Assignment</div>
+</div>
+<div class="card-desc" style="margin-bottom:12px">After booting Windows 10, configure the network adapter with a static IP address:</div>
+<ol class="steps">
+<li>Press <span class="key-combo"><kbd>Windows</kbd><span>+</span><kbd>R</kbd></span> to open the Run dialog</li>
+<li>Type <strong>ncpa.cpl</strong> and press Enter</li>
+<li>Right-click the <strong>Ethernet</strong> adapter and select <strong>Properties</strong></li>
+<li>Select <strong>Internet Protocol Version 4 (TCP/IPv4)</strong></li>
+<li>Click <strong>Properties</strong></li>
+</ol>
+
+<table>
+<thead><tr><th>Field</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>IP Address</td><td>192.168.56.121</td></tr>
+<tr><td>Subnet Mask</td><td>255.255.255.0</td></tr>
+<tr><td>Default Gateway</td><td>Leave Blank</td></tr>
+<tr><td>Preferred DNS Server</td><td>192.168.56.120</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="warning-card">
+<div class="icon">&#9888;</div>
+<div class="content"><strong>CRITICAL:</strong> DNS MUST point to the Domain Controller (192.168.56.120). Without correct DNS configuration, domain joining will fail. The client uses DNS to locate the domain controller for authentication and policy updates.</div>
+</div>
+
+<div class="info-card">
+<div class="icon">&#9432;</div>
+<div class="content"><strong>Why Leave Gateway Blank?</strong> In a lab environment with a Host-Only network, there is no router. The gateway is unnecessary because all systems are on the same subnet. In production, you would configure the correct gateway address.</div>
+</div>
+</section>
+
+<!-- SECTION 6 -->
+<section class="section" id="sec6">
+<div class="section-header">
+<div class="section-number">06</div>
+<h2>DNS Configuration Fundamentals</h2>
+<p>Understanding why DNS is critical for Active Directory to function correctly.</p>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon purple">&#9432;</div>
+<div class="card-title">DNS and Active Directory</div>
+</div>
+<div class="card-desc" style="margin-bottom:12px">
+Active Directory Domain Services relies on DNS for the following critical functions:
+</div>
+<ul style="list-style:none;font-size:0.88rem;color:var(--text-secondary);margin-bottom:16px">
+<li style="padding:6px 0;display:flex;align-items:center;gap:10px"><span style="color:var(--accent-blue-bright)">&#9656;</span> <strong>Locating Domain Controllers</strong> &mdash; Clients query DNS to find DC1</li>
+<li style="padding:6px 0;display:flex;align-items:center;gap:10px"><span style="color:var(--accent-blue-bright)">&#9656;</span> <strong>Domain Name Resolution</strong> &mdash; Resolves ignite.local to an IP address</li>
+<li style="padding:6px 0;display:flex;align-items:center;gap:10px"><span style="color:var(--accent-blue-bright)">&#9656;</span> <strong>Service Location (SRV Records)</strong> &mdash; Identifies LDAP, Kerberos, and other services</li>
+<li style="padding:6px 0;display:flex;align-items:center;gap:10px"><span style="color:var(--accent-blue-bright)">&#9656;</span> <strong>Authentication Routing</strong> &mdash; Directs authentication requests to the correct server</li>
+</ul>
+
+<div class="diagram-box">
+<div class="diagram-inner">
+<div class="diagram-node client">Win10-Client</div>
+<div class="diagram-arrow-svg">
+<svg viewBox="0 0 24 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v14M5 11l7 7 7-7" stroke="#64748b"/></svg>
+<div class="diagram-label">DNS Query: "Where is ignite.local?"</div>
+</div>
+<div class="diagram-node server">DC1 &middot; DNS Server</div>
+<div class="diagram-arrow-svg">
+<svg viewBox="0 0 24 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 18V4M5 9l7-7 7 7" stroke="#64748b"/></svg>
+<div class="diagram-label">Response: "ignite.local = 192.168.56.120"</div>
+</div>
+<div class="diagram-node client">Win10-Client initiates Domain Join</div>
+</div>
+</div>
+
+<div class="info-card">
+<div class="icon">&#9432;</div>
+<div class="content"><strong>Remember:</strong> Without DNS pointing to DC1, the client cannot resolve the domain name <strong>ignite.local</strong>. Domain Join, authentication, and Group Policy updates will all fail.</div>
+</div>
+</section>
+
+<!-- SECTION 7 -->
+<section class="section" id="sec7">
+<div class="section-header">
+<div class="section-number">07</div>
+<h2>Connectivity Verification</h2>
+<p>Verifying that the client can communicate with the domain controller before attempting a domain join.</p>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon blue">&#9881;</div>
+<div class="card-title">Verification Tests</div>
+</div>
+<div class="card-desc" style="margin-bottom:12px">Open Command Prompt and run the following tests to verify connectivity:</div>
+
+<div class="cmd-sim" data-command="ping 192.168.56.120" data-output="Pinging 192.168.56.120 with 32 bytes of data:\nReply from 192.168.56.120: bytes=32 time&lt;1ms TTL=128\nReply from 192.168.56.120: bytes=32 time&lt;1ms TTL=128\nReply from 192.168.56.120: bytes=32 time&lt;1ms TTL=128\nReply from 192.168.56.120: bytes=32 time&lt;1ms TTL=128\n\nPing statistics for 192.168.56.120:\n    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)">
+<div class="cmd-sim-header">
+<span class="cmd-sim-title">Command Test 1 &mdash; Ping DC1</span>
+<button class="cmd-sim-run" onclick="runSim(this)">Run</button>
+</div>
+<div class="cmd-sim-body">
+<span class="prompt">C:\Users\student&gt;</span> <span class="typing">ping 192.168.56.120</span>
+</div>
+</div>
+
+<div class="info-card">
+<div class="icon">&#9432;</div>
+<div class="content"><strong>Ping Test:</strong> Verifies basic network connectivity between the client and DC1. If you receive replies, Layer 3 (IP) connectivity is working.</div>
+</div>
+
+<div class="cmd-sim" data-command="nslookup ignite.local" data-output="Server:  DC1\nAddress:  192.168.56.120\n\nName:    ignite.local\nAddress:  192.168.56.120">
+<div class="cmd-sim-header">
+<span class="cmd-sim-title">Command Test 2 &mdash; DNS Lookup</span>
+<button class="cmd-sim-run" onclick="runSim(this)">Run</button>
+</div>
+<div class="cmd-sim-body">
+<span class="prompt">C:\Users\student&gt;</span> <span class="typing">nslookup ignite.local</span>
+</div>
+</div>
+
+<div class="info-card">
+<div class="icon">&#9432;</div>
+<div class="content"><strong>DNS Test:</strong> Confirms DNS is functioning correctly. The response should show the server as DC1 (192.168.56.120) and resolve ignite.local to the same address. If this works, DNS is properly configured.</div>
+</div>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon amber">&#9888;</div>
+<div class="card-title">Troubleshooting Guide</div>
+</div>
+<table>
+<thead><tr><th>Problem</th><th>Likely Cause</th><th>Solution</th></tr></thead>
+<tbody>
+<tr><td>Ping fails</td><td>Wrong network adapter</td><td>Verify both VMs use Host-Only adapter</td></tr>
+<tr><td>Ping fails</td><td>Firewall blocking</td><td>Disable Windows Firewall on DC1 (lab only)</td></tr>
+<tr><td>nslookup fails</td><td>DNS not set to DC1</td><td>Verify client DNS = 192.168.56.120</td></tr>
+<tr><td>nslookup fails</td><td>DC1 DNS zone missing</td><td>Verify ignite.local zone exists on DC1</td></tr>
+<tr><td>Request timed out</td><td>IP configuration error</td><td>Check subnet mask and IP assignment</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<!-- SECTION 8 -->
+<section class="section" id="sec8">
+<div class="section-header">
+<div class="section-number">08</div>
+<h2>Domain Joining Process</h2>
+<p>The core procedure of joining a Windows 10 client to an Active Directory domain.</p>
+</div>
+
+<div class="warning-card">
+<div class="icon">&#9888;</div>
+<div class="content"><strong>Prerequisites:</strong> Before proceeding, ensure DNS is correctly configured and connectivity tests pass. If either test fails, the domain join will also fail.</div>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon blue">&#9881;</div>
+<div class="card-title">Step-by-Step Domain Join</div>
+</div>
+<div class="step-cards">
+<div class="step-card">
+<div class="num">1</div>
+<div class="txt"><strong>Open System Properties</strong><div class="desc">Press <kbd>Windows</kbd> + <kbd>R</kbd>, type <strong>sysdm.cpl</strong>, press Enter</div></div>
+</div>
+<div class="step-card">
+<div class="num">2</div>
+<div class="txt"><strong>Computer Name Tab</strong><div class="desc">Click the <strong>Computer Name</strong> tab, then click <strong>Change</strong></div></div>
+</div>
+<div class="step-card">
+<div class="num">3</div>
+<div class="txt"><strong>Select Domain</strong><div class="desc">Under "Member of", select <strong>Domain</strong> and type <strong>ignite.local</strong></div></div>
+</div>
+<div class="step-card">
+<div class="num">4</div>
+<div class="txt"><strong>Click OK</strong><div class="desc">An authentication popup will appear</div></div>
+</div>
+<div class="step-card">
+<div class="num">5</div>
+<div class="txt"><strong>Enter Admin Credentials</strong><div class="desc">Username: <strong>Administrator</strong> or <strong>ignite\Administrator</strong>, Password: &lt;Domain Admin Password&gt;</div></div>
+</div>
+<div class="step-card">
+<div class="num">6</div>
+<div class="txt"><strong>Welcome Message</strong><div class="desc">You should see: <strong>"Welcome to the ignite.local domain"</strong></div></div>
+</div>
+<div class="step-card">
+<div class="num">7</div>
+<div class="txt"><strong>Restart</strong><div class="desc">Click OK and restart the client machine</div></div>
+</div>
+</div>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon green">&#10003;</div>
+<div class="card-title">Authentication Details</div>
+</div>
+<div class="card-desc" style="margin-bottom:12px">When the authentication popup appears, use one of these formats:</div>
+<table>
+<thead><tr><th>Format</th><th>Example</th></tr></thead>
+<tbody>
+<tr><td>Username only (UPN)</td><td>Administrator</td></tr>
+<tr><td>Domain\Username</td><td>ignite\Administrator</td></tr>
+<tr><td>Full UPN</td><td>Administrator@ignite.local</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="info-card">
+<div class="icon">&#9432;</div>
+<div class="content"><strong>What happens behind the scenes:</strong> The client contacts DC1 via DNS, establishes a secure channel using Kerberos authentication, creates a computer object in Active Directory, and receives a domain membership credential. All of this happens in seconds.</div>
+</div>
+</section>
+
+<!-- SECTION 9 -->
+<section class="section" id="sec9">
+<div class="section-header">
+<div class="section-number">09</div>
+<h2>Domain Authentication Verification</h2>
+<p>Proving that authentication now happens through Active Directory rather than the local machine.</p>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon green">&#10003;</div>
+<div class="card-title">Verification Commands</div>
+</div>
+<div class="card-desc" style="margin-bottom:12px">After reboot, log in using a domain user account (e.g., <strong>ignite\yashika</strong>). Then verify domain authentication:</div>
+
+<div class="cmd-sim" data-command="whoami" data-output="ignite\yashika">
+<div class="cmd-sim-header">
+<span class="cmd-sim-title">Command &mdash; whoami</span>
+<button class="cmd-sim-run" onclick="runSim(this)">Run</button>
+</div>
+<div class="cmd-sim-body">
+<span class="prompt">C:\Users\yashika&gt;</span> <span class="typing">whoami</span>
+</div>
+</div>
+
+<div class="info-card">
+<div class="icon">&#9432;</div>
+<div class="content"><strong>whoami</strong> shows the current user identity. If the output is <strong>ignite\yashika</strong>, authentication is now handled by Active Directory, not the local machine.</div>
+</div>
+
+<div class="cmd-sim" data-command="echo %logonserver%" data-output="\\DC1">
+<div class="cmd-sim-header">
+<span class="cmd-sim-title">Command &mdash; Logon Server</span>
+<button class="cmd-sim-run" onclick="runSim(this)">Run</button>
+</div>
+<div class="cmd-sim-body">
+<span class="prompt">C:\Users\yashika&gt;</span> <span class="typing">echo %logonserver%</span>
+</div>
+</div>
+
+<div class="info-card">
+<div class="icon">&#9432;</div>
+<div class="content"><strong>%logonserver%</strong> reveals which domain controller authenticated the user. The output <strong>\\DC1</strong> confirms that DC1 handled the authentication request.</div>
+</div>
+</div>
+
+<div class="success-card">
+<div class="icon">&#10003;</div>
+<div class="content"><strong>Success Criteria:</strong> whoami shows <strong>ignite\username</strong> and %logonserver% shows <strong>\\DC1</strong>. Both confirm Active Directory is functioning correctly for client authentication.</div>
+</div>
+</section>
+
+<!-- SECTION 10 -->
+<section class="section" id="sec10">
+<div class="section-header">
+<div class="section-number">10</div>
+<h2>Computer Object Verification</h2>
+<p>Confirming that the client machine appears as a computer object in Active Directory.</p>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon blue">&#9432;</div>
+<div class="card-title">Verification on DC1</div>
+</div>
+<div class="card-desc" style="margin-bottom:12px">
+On the Domain Controller (DC1), open <strong>Active Directory Users and Computers</strong> and navigate to the <strong>Computers</strong> container. You should see <strong>WIN10-CLIENT</strong> listed automatically.
+</div>
+
+<div class="diagram-box">
+<div class="diagram-inner">
+<div class="diagram-node server">Active Directory Users and Computers</div>
+<div class="diagram-arrow-svg">
+<svg viewBox="0 0 24 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v14M5 11l7 7 7-7" stroke="#64748b"/></svg>
+</div>
+<div class="diagram-node server">Computers Container</div>
+<div class="diagram-arrow-svg">
+<svg viewBox="0 0 24 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v14M5 11l7 7 7-7" stroke="#64748b"/></svg>
+</div>
+<div class="diagram-node client">WIN10-CLIENT</div>
+</div>
+</div>
+
+<div class="info-card">
+<div class="icon">&#9432;</div>
+<div class="content"><strong>How it works:</strong> When a client joins the domain, a computer object is automatically created in the Computers container. This object represents the machine in Active Directory and is used for authentication, policy application, and security management.</div>
+</div>
+</div>
+</section>
+
+<!-- SECTION 11 -->
+<section class="section" id="sec11">
+<div class="section-header">
+<div class="section-number">11</div>
+<h2>Moving Computer Objects into OUs</h2>
+<p>Organizing computer objects into Organizational Units for targeted policy application.</p>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon amber">&#9432;</div>
+<div class="card-title">Why Move to an OU?</div>
+</div>
+<div class="card-desc">
+By default, computer objects are placed in the Computers container. However, the Computers container is not an Organizational Unit (OU) and cannot have Group Policy Objects linked to it. To apply GPOs to a computer, it must be moved into a custom OU.
+</div>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon green">&#10003;</div>
+<div class="card-title">OU Structure Example</div>
+</div>
+<div class="tree">
+ignite.local
+├── <span class="highlight">HR</span>
+│   └── WIN10-CLIENT
+├── IT
+├── Finance
+├── Users
+└── Computers
+</div>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon blue">&#9881;</div>
+<div class="card-title">Move Procedure</div>
+</div>
+<ol class="steps">
+<li>Open <strong>Active Directory Users and Computers</strong> on DC1</li>
+<li>Navigate to the <strong>Computers</strong> container</li>
+<li><strong>Right-click</strong> WIN10-CLIENT</li>
+<li>Select <strong>Move</strong></li>
+<li>Choose the target OU (e.g., <strong>HR</strong>)</li>
+<li>Click <strong>OK</strong></li>
+</ol>
+
+<div class="info-card">
+<div class="icon">&#9432;</div>
+<div class="content"><strong>Benefit:</strong> Once moved to the HR OU, Group Policies linked to that OU will automatically apply to WIN10-CLIENT. This enables targeted policy management based on department or function.</div>
+</div>
+</div>
+</section>
+
+<!-- SECTION 12 -->
+<section class="section" id="sec12">
+<div class="section-header">
+<div class="section-number">12</div>
+<h2>Introduction to Group Policy</h2>
+<p>Understanding what Group Policy is and why it is the cornerstone of enterprise Windows management.</p>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon purple">&#9432;</div>
+<div class="card-title">The Group Policy Concept</div>
+</div>
+<div class="card-desc" style="margin-bottom:16px">
+Ask yourself: If 500 employees all need the same wallpaper, password policy, and USB restrictions, would you configure every machine manually?
+</div>
+
+<div class="success-card">
+<div class="icon">&#10003;</div>
+<div class="content"><strong>The answer is No.</strong> Group Policy provides <strong>Centralized Management</strong> &mdash; you configure policies once on the Domain Controller, and they automatically apply to every targeted machine.</div>
+</div>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon cyan">&#8644;</div>
+<div class="card-title">How Group Policy Works</div>
+</div>
+<div class="arch">
+<div class="arch-row"><div class="arch-box dc">Domain Controller</div></div>
+<div class="arch-arrow">&#9660;</div>
+<div class="arch-row"><div class="arch-box gpo">Group Policy Object (GPO)</div></div>
+<div class="arch-arrow">&#9660;</div>
+<div class="arch-row">
+<div class="arch-box pc">PC 1</div>
+<div class="arch-box pc">PC 2</div>
+<div class="arch-box pc">PC 3</div>
+<div class="arch-box pc">PC N</div>
+</div>
+</div>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon blue">&#9432;</div>
+<div class="card-title">Key Terminology</div>
+</div>
+<table>
+<thead><tr><th>Term</th><th>Definition</th></tr></thead>
+<tbody>
+<tr><td>GPO</td><td>Group Policy Object &mdash; a collection of policy settings</td></tr>
+<tr><td>OU</td><td>Organizational Unit &mdash; a container that GPOs are linked to</td></tr>
+<tr><td>Computer Configuration</td><td>Policies applied to machines (boot-time)</td></tr>
+<tr><td>User Configuration</td><td>Policies applied to users (logon-time)</td></tr>
+<tr><td>Security Filtering</td><td>Controls which users or groups receive a GPO</td></tr>
+<tr><td>gpupdate</td><td>Command to force policy refresh</td></tr>
+<tr><td>gpresult</td><td>Command to view applied policies</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<!-- SECTION 13 -->
+<section class="section" id="sec13">
+<div class="section-header">
+<div class="section-number">13</div>
+<h2>Group Policy Management Console</h2>
+<p>Opening and navigating the Group Policy Management Console on the Domain Controller.</p>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon blue">&#9881;</div>
+<div class="card-title">Opening GPMC</div>
+</div>
+<ol class="steps">
+<li>On DC1, open <strong>Server Manager</strong></li>
+<li>Click the <strong>Tools</strong> menu in the top-right corner</li>
+<li>Select <strong>Group Policy Management</strong></li>
+<li>In the console, expand <strong>Forest: ignite.local</strong></li>
+<li>Expand <strong>Domains</strong> &rarr; <strong>ignite.local</strong></li>
+</ol>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon amber">&#9432;</div>
+<div class="card-title">Default GPOs Explained</div>
+</div>
+<div class="card-desc" style="margin-bottom:12px">When you open GPMC, you will see these default policies:</div>
+<table>
+<thead><tr><th>GPO Name</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td>Default Domain Policy</td><td>Applied to all domain users and computers. Contains baseline settings like password policy, Kerberos policy, and account lockout.</td></tr>
+<tr><td>Default Domain Controllers Policy</td><td>Applied only to Domain Controllers. Contains security-sensitive settings for DCs.</td></tr>
+</tbody>
+</table>
+<div class="info-card" style="margin-bottom:0;margin-top:12px">
+<div class="icon">&#9432;</div>
+<div class="content"><strong>Best Practice:</strong> Never modify the Default Domain Policy for application-specific settings. Create separate GPOs for each policy purpose and link them to specific OUs. This makes troubleshooting and delegation easier.</div>
+</div>
+</div>
+</section>
+
+<!-- SECTION 14 -->
+<section class="section" id="sec14">
+<div class="section-header">
+<div class="section-number">14</div>
+<h2>Creating a New GPO</h2>
+<p>Creating a custom Group Policy Object for targeted policy application.</p>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon green">&#10003;</div>
+<div class="card-title">GPO Creation Steps</div>
+</div>
+<div class="card-desc" style="margin-bottom:12px">We will create a GPO linked to the HR Organizational Unit:</div>
+<ol class="steps">
+<li>In GPMC, locate your target OU (e.g., <strong>HR</strong>)</li>
+<li><strong>Right-click</strong> the HR OU</li>
+<li>Select <strong>Create a GPO in this domain, and Link it here...</strong></li>
+<li>Enter the name: <strong>HR Security Policy</strong></li>
+<li>Click <strong>OK</strong></li>
+</ol>
+
+<div class="tree">
+ignite.local
+├── HR
+│   └── <span class="highlight">HR Security Policy</span>
+├── IT
+├── Finance
+└── ...
+</div>
+
+<div class="info-card">
+<div class="icon">&#9432;</div>
+<div class="content"><strong>What happened?</strong> A new Group Policy Object named "HR Security Policy" was created and linked to the HR OU. Any policy settings configured within this GPO will apply to all users and computers in the HR OU.</div>
+</div>
+</div>
+</section>
+
+<!-- SECTION 15 -->
+<section class="section" id="sec15">
+<div class="section-header">
+<div class="section-number">15</div>
+<h2>Linking GPO to Organizational Units</h2>
+<p>Understanding how GPO linking determines which users and computers receive which policies.</p>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon cyan">&#8644;</div>
+<div class="card-title">GPO Link Inheritance</div>
+</div>
+<div class="card-desc" style="margin-bottom:16px">
+GPOs can be linked at three levels in Active Directory, each with a specific scope and precedence order:
+</div>
+
+<div class="arch">
+<div class="arch-row"><div class="arch-box dc">Site Level &mdash; Affects all sites</div></div>
+<div class="arch-arrow">&#9660; (Lowest precedence)</div>
+<div class="arch-row"><div class="arch-box dc">Domain Level &mdash; Affects all domain members</div></div>
+<div class="arch-arrow">&#9660; (Medium precedence)</div>
+<div class="arch-row"><div class="arch-box ou">OU Level &mdash; Affects only that OU</div></div>
+<div class="arch-arrow">&#9660; (Highest precedence)</div>
+</div>
+
+<div class="info-card">
+<div class="icon">&#9432;</div>
+<div class="content"><strong>Inheritance Rule:</strong> By default, child OUs inherit GPOs from parent containers. You can block inheritance or enforce a GPO link to override this behavior. In our lab, linking to the HR OU means only objects within HR receive these policies.</div>
+</div>
+</div>
+</section>
+
+<!-- SECTION 16 -->
+<section class="section" id="sec16">
+<div class="section-header">
+<div class="section-number">16</div>
+<h2>Password Policy Configuration</h2>
+<p>Configuring domain-wide password policies using the Default Domain Policy.</p>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon amber">&#9432;</div>
+<div class="card-title">Password Policy Best Practices</div>
+</div>
+<div class="card-desc" style="margin-bottom:12px">
+Password policies are typically configured at the domain level (Default Domain Policy) because they apply to all domain users. This ensures consistent security across the organization.
+</div>
+
+<div class="warning-card">
+<div class="icon">&#9888;</div>
+<div class="content"><strong>Note:</strong> Password policies are a domain-wide setting. They should be configured in the <strong>Default Domain Policy</strong>, not in custom GPOs linked to OUs. Password settings in OUs will not override domain-level password policy.</div>
+</div>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon blue">&#9881;</div>
+<div class="card-title">Configuring Password Policy</div>
+</div>
+<ol class="steps">
+<li>Right-click <strong>Default Domain Policy</strong> and select <strong>Edit</strong></li>
+<li>Navigate to: <strong>Computer Configuration</strong> &rarr; <strong>Policies</strong> &rarr; <strong>Windows Settings</strong> &rarr; <strong>Security Settings</strong> &rarr; <strong>Account Policies</strong> &rarr; <strong>Password Policy</strong></li>
+</ol>
+
+<table>
+<thead><tr><th>Policy Setting</th><th>Configured Value</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td>Minimum Password Length</td><td><strong>8 characters</strong></td><td>Passwords must be at least 8 characters long</td></tr>
+<tr><td>Password must meet complexity requirements</td><td><strong>Enabled</strong></td><td>Requires uppercase, lowercase, digits, and special characters</td></tr>
+<tr><td>Account Lockout Threshold</td><td><strong>5 invalid attempts</strong></td><td>Account locks after 5 failed password attempts</td></tr>
+</tbody>
+</table>
+
+<div class="info-card">
+<div class="icon">&#9432;</div>
+<div class="content"><strong>Teaching Point:</strong> After configuring these settings, every domain user will be required to follow these password rules. Users cannot set weak passwords like "123" or "password". The Domain Controller enforces these policies centrally.</div>
+</div>
+</div>
+</section>
+
+<!-- SECTION 17 -->
+<section class="section" id="sec17">
+<div class="section-header">
+<div class="section-number">17</div>
+<h2>Control Panel Restriction Policy</h2>
+<p>Restricting access to Control Panel and PC settings using Group Policy.</p>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon red">&#9888;</div>
+<div class="card-title">Why Restrict Control Panel?</div>
+</div>
+<div class="card-desc">
+In enterprise environments, standard users should not be able to change system settings through Control Panel. Restricting access prevents users from modifying network settings, uninstalling applications, or changing security configurations.
+</div>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon blue">&#9881;</div>
+<div class="card-title">Configuration Steps</div>
+</div>
+<ol class="steps">
+<li>Right-click <strong>HR Security Policy</strong> and select <strong>Edit</strong></li>
+<li>Navigate to: <strong>User Configuration</strong> &rarr; <strong>Policies</strong> &rarr; <strong>Administrative Templates</strong> &rarr; <strong>Control Panel</strong></li>
+<li>Open <strong>Prohibit access to Control Panel and PC settings</strong></li>
+<li>Select <strong>Enabled</strong></li>
+<li>Click <strong>Apply</strong> and <strong>OK</strong></li>
+</ol>
+
+<div class="success-card">
+<div class="icon">&#10003;</div>
+<div class="content"><strong>Result:</strong> When this policy is applied, if a user tries to open Control Panel (by running <strong>control</strong> or navigating through Start Menu), they will receive an error: "This operation has been cancelled due to restrictions in effect on this computer."</div>
+</div>
+
+<div class="info-card">
+<div class="icon">&#9432;</div>
+<div class="content"><strong>Teaching Point:</strong> The administrator never touched the client machine directly. The restriction came from the Domain Controller through Group Policy. This is the power of centralized management.</div>
+</div>
+</div>
+</section>
+
+<!-- SECTION 18 -->
+<section class="section" id="sec18">
+<div class="section-header">
+<div class="section-number">18</div>
+<h2>Desktop Wallpaper Policy</h2>
+<p>Configuring a corporate desktop wallpaper through Group Policy.</p>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon purple">&#9432;</div>
+<div class="card-title">Prerequisites on DC1</div>
+</div>
+<ol class="steps">
+<li>Create a folder on DC1: <strong>C:\Wallpapers</strong></li>
+<li>Place a wallpaper image file named <strong>company.jpg</strong> in the folder</li>
+<li>Share the folder:
+  <ul style="list-style:none;padding:8px 0 0 24px;margin:0;font-size:0.88rem;color:var(--text-secondary)">
+  <li style="padding:3px 0">Right-click <strong>Wallpapers</strong> folder</li>
+  <li style="padding:3px 0">Go to <strong>Properties</strong> &rarr; <strong>Sharing</strong> &rarr; <strong>Advanced Sharing</strong></li>
+  <li style="padding:3px 0">Share name: <strong>Wallpapers</strong></li>
+  </ul>
+</li>
+<li>Verify the UNC path: <strong>\\DC1\Wallpapers\company.jpg</strong></li>
+</ol>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon blue">&#9881;</div>
+<div class="card-title">Wallpaper Policy Configuration</div>
+</div>
+<ol class="steps">
+<li>Edit <strong>HR Security Policy</strong></li>
+<li>Navigate to: <strong>User Configuration</strong> &rarr; <strong>Policies</strong> &rarr; <strong>Administrative Templates</strong> &rarr; <strong>Desktop</strong> &rarr; <strong>Desktop Wallpaper</strong></li>
+<li>Set the following values:
+  <table style="margin-top:12px">
+  <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+  <tbody>
+  <tr><td>Desktop Wallpaper</td><td><strong>Enabled</strong></td></tr>
+  <tr><td>Wallpaper Path</td><td><strong>\\DC1\Wallpapers\company.jpg</strong></td></tr>
+  <tr><td>Wallpaper Style</td><td><strong>Fill</strong></td></tr>
+  </tbody>
+  </table>
+</li>
+<li>Click <strong>Apply</strong> and <strong>OK</strong></li>
+</ol>
+
+<div class="info-card">
+<div class="icon">&#9432;</div>
+<div class="content"><strong>Teaching Point:</strong> One administrator changed the wallpaper once in a GPO. Hundreds of machines in the HR OU will automatically receive the new wallpaper when users log in or when gpupdate runs.</div>
+</div>
+</div>
+</section>
+
+<!-- SECTION 19 -->
+<section class="section" id="sec19">
+<div class="section-header">
+<div class="section-number">19</div>
+<h2>USB Restriction Policy</h2>
+<p>Blocking removable storage devices using Group Policy to prevent data exfiltration and malware.</p>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon red">&#9888;</div>
+<div class="card-title">Why Restrict USB Devices?</div>
+</div>
+<div class="card-desc">
+USB drives are one of the most common vectors for data theft and malware introduction. In enterprise environments, organizations often restrict or block removable storage to protect sensitive data and maintain security compliance.
+</div>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon blue">&#9881;</div>
+<div class="card-title">USB Restriction Configuration</div>
+</div>
+<ol class="steps">
+<li>Edit <strong>HR Security Policy</strong></li>
+<li>Navigate to: <strong>Computer Configuration</strong> &rarr; <strong>Policies</strong> &rarr; <strong>Administrative Templates</strong> &rarr; <strong>System</strong> &rarr; <strong>Removable Storage Access</strong></li>
+<li>Open <strong>All Removable Storage classes: Deny all access</strong></li>
+<li>Select <strong>Enabled</strong></li>
+<li>Click <strong>Apply</strong> and <strong>OK</strong></li>
+</ol>
+
+<div class="warning-card">
+<div class="icon">&#9888;</div>
+<div class="content"><strong>Impact:</strong> This policy blocks all removable storage devices including USB drives, external hard drives, memory cards, and portable media players. Users will not be able to access or use these devices on their workstations.</div>
+</div>
+
+<div class="success-card">
+<div class="icon">&#10003;</div>
+<div class="content"><strong>Enterprise Relevance:</strong> USB restrictions are commonly required for compliance with standards like ISO 27001, NIST, and GDPR. Group Policy makes it possible to enforce this across the entire organization from a single console.</div>
+</div>
+</div>
+</section>
+
+<!-- SECTION 20 -->
+<section class="section" id="sec20">
+<div class="section-header">
+<div class="section-number">20</div>
+<h2>Force Policy Update</h2>
+<p>Applying Group Policy changes immediately rather than waiting for the automatic refresh cycle.</p>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon amber">&#9432;</div>
+<div class="card-title">Understanding Policy Refresh</div>
+</div>
+<div class="card-desc" style="margin-bottom:12px">
+By default, Group Policy refreshes automatically every <strong>90 minutes</strong> (with a random offset of 0-30 minutes). However, administrators typically don't wait &mdash; they force an immediate update.
+</div>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon blue">&#9881;</div>
+<div class="card-title">Force Update Procedure</div>
+</div>
+<ol class="steps">
+<li>Login to the Windows 10 Client using a domain user: <strong>ignite\yashika</strong></li>
+<li>Open <strong>Command Prompt (Run as Administrator)</strong> or <strong>PowerShell (Run as Administrator)</strong></li>
+</ol>
+
+<div class="cmd-sim" data-command="gpupdate /force" data-output="Updating policy...\n\nComputer Policy update has completed successfully.\n\nUser Policy update has completed successfully.">
+<div class="cmd-sim-header">
+<span class="cmd-sim-title">Command &mdash; gpupdate /force</span>
+<button class="cmd-sim-run" onclick="runSim(this)">Run</button>
+</div>
+<div class="cmd-sim-body">
+<span class="prompt">C:\Windows\system32&gt;</span> <span class="typing">gpupdate /force</span>
+</div>
+</div>
+
+<div class="info-card">
+<div class="icon">&#9432;</div>
+<div class="content"><strong>What happens:</strong> The client contacts DC1 and asks "Do you have any new policies for me?" DC1 responds with the latest GPO settings, and the client applies them immediately. If prompted to log off or restart, press <strong>Y</strong>.</div>
+</div>
+</section>
+
+<!-- SECTION 21 -->
+<section class="section" id="sec21">
+<div class="section-header">
+<div class="section-number">21</div>
+<h2>GPO Verification</h2>
+<p>Verifying that Group Policies have been successfully applied to the client machine.</p>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon red">&#9888;</div>
+<div class="card-title">A Common Mistake</div>
+</div>
+<div class="card-desc" style="margin-bottom:8px">
+Many beginners run gpupdate successfully but never verify whether policies actually applied. Real administrators <strong>ALWAYS</strong> verify.
+</div>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon green">&#10003;</div>
+<div class="card-title">Verification Commands</div>
+</div>
+
+<div class="cmd-sim" data-command="gpresult /r" data-output="\nMicrosoft (R) Windows (R) Operating System Group Policy Result tool\n\n\...\n\nApplied Group Policy Objects\n----------------------------\nDefault Domain Policy\nHR Security Policy\n\n\...\n">
+<div class="cmd-sim-header">
+<span class="cmd-sim-title">Command &mdash; gpresult /r</span>
+<button class="cmd-sim-run" onclick="runSim(this)">Run</button>
+</div>
+<div class="cmd-sim-body">
+<span class="prompt">C:\Users\yashika&gt;</span> <span class="typing">gpresult /r</span>
+</div>
+</div>
+
+<div class="info-card">
+<div class="icon">&#9432;</div>
+<div class="content"><strong>gpresult /r</strong> shows a summary of which GPOs were applied to the current user and computer. Look for <strong>HR Security Policy</strong> in the "Applied Group Policy Objects" section. If you see it, the GPO reached the machine successfully.</div>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon blue">&#9881;</div>
+<div class="card-title">Advanced Verification</div>
+</div>
+<div class="cmd-sim" data-command="gpresult /h report.html" data-output="Report generated successfully. Saved to report.html.">
+<div class="cmd-sim-header">
+<span class="cmd-sim-title">Command &mdash; gpresult /h</span>
+<button class="cmd-sim-run" onclick="runSim(this)">Run</button>
+</div>
+<div class="cmd-sim-body">
+<span class="prompt">C:\Users\yashika&gt;</span> <span class="typing">gpresult /h report.html</span>
+</div>
+</div>
+
+<div class="info-card">
+<div class="icon">&#9432;</div>
+<div class="content"><strong>Better Method:</strong> Running <strong>gpresult /h report.html</strong> generates an HTML report that you can open in a browser. The report visually displays user settings, computer settings, applied GPOs, denied GPOs, and security filtering details. This is how enterprise administrators troubleshoot GPO issues.</div>
+</div>
+</div>
+</section>
+
+<!-- SECTION 22 -->
+<section class="section" id="sec22">
+<div class="section-header">
+<div class="section-number">22</div>
+<h2>Testing Applied Restrictions</h2>
+<p>Verifying that each configured policy is actually enforced on the client machine.</p>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon red">&#9888;</div>
+<div class="card-title">Test 1 &mdash; Control Panel Restriction</div>
+</div>
+<ol class="steps">
+<li>Press <span class="key-combo"><kbd>Windows</kbd><span>+</span><kbd>R</kbd></span> to open Run</li>
+<li>Type <strong>control</strong> and press Enter</li>
+</ol>
+<div class="warning-card">
+<div class="icon">&#9888;</div>
+<div class="content"><strong>Expected Result:</strong> "This operation has been cancelled due to restrictions in effect on this computer." The administrator never touched this client. The policy came from the Domain Controller through Group Policy.</div>
+</div>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon blue">&#9432;</div>
+<div class="card-title">Test 2 &mdash; Wallpaper Policy</div>
+</div>
+<ol class="steps">
+<li><strong>Sign out</strong> of the current session</li>
+<li><strong>Log in again</strong> using the domain user account</li>
+</ol>
+<div class="success-card">
+<div class="icon">&#10003;</div>
+<div class="content"><strong>Expected Result:</strong> The desktop wallpaper will automatically change to the corporate wallpaper (company.jpg) configured in the GPO. One administrator changed the wallpaper once, and all machines in the HR OU applied it automatically.</div>
+</div>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon amber">&#9888;</div>
+<div class="card-title">Test 3 &mdash; Password Policy</div>
+</div>
+<ol class="steps">
+<li>Press <span class="key-combo"><kbd>Ctrl</kbd><span>+</span><kbd>Alt</kbd><span>+</span><kbd>Delete</kbd></span></li>
+<li>Select <strong>Change a password</strong></li>
+<li>Try a weak password: <strong>123</strong> or <strong>password</strong></li>
+</ol>
+<div class="warning-card">
+<div class="icon">&#9888;</div>
+<div class="content"><strong>Expected Result:</strong> "Password does not meet complexity requirements." The Domain Controller enforces password rules, not the local machine. The minimum length, complexity, and lockout policies are all enforced centrally.</div>
+</div>
+</div>
+</section>
+
+<!-- SECTION 23 -->
+<section class="section" id="sec23">
+<div class="section-header">
+<div class="section-number">23</div>
+<h2>Enterprise Administration Summary</h2>
+<p>A comprehensive review of everything covered in this Active Directory &amp; Group Policy administration course.</p>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon green">&#10003;</div>
+<div class="card-title">What We Accomplished</div>
+</div>
+<div class="summary-grid">
+<div class="summary-item">
+<div class="si-num">01</div>
+<div class="si-text"><strong>Client Preparation</strong>Created Windows 10 Pro VM and configured VirtualBox networking</div>
+</div>
+<div class="summary-item">
+<div class="si-num">02</div>
+<div class="si-text"><strong>Network Configuration</strong>Assigned static IP and configured DNS to point to DC1</div>
+</div>
+<div class="summary-item">
+<div class="si-num">03</div>
+<div class="si-text"><strong>Domain Join</strong>Successfully joined Win10-Client to ignite.local domain</div>
+</div>
+<div class="summary-item">
+<div class="si-num">04</div>
+<div class="si-text"><strong>Authentication Verified</strong>Confirmed domain authentication via whoami and %logonserver%</div>
+</div>
+<div class="summary-item">
+<div class="si-num">05</div>
+<div class="si-text"><strong>Computer Object</strong>Verified WIN10-CLIENT appears in ADUC and moved to HR OU</div>
+</div>
+<div class="summary-item">
+<div class="si-num">06</div>
+<div class="si-text"><strong>GPO Creation</strong>Created HR Security Policy linked to the HR Organizational Unit</div>
+</div>
+<div class="summary-item">
+<div class="si-num">07</div>
+<div class="si-text"><strong>Password Policy</strong>Configured domain-wide password and lockout policies</div>
+</div>
+<div class="summary-item">
+<div class="si-num">08</div>
+<div class="si-text"><strong>Control Panel Restriction</strong>Blocked access to Control Panel and PC settings</div>
+</div>
+<div class="summary-item">
+<div class="si-num">09</div>
+<div class="si-text"><strong>Wallpaper Policy</strong>Deployed corporate wallpaper via network share and GPO</div>
+</div>
+<div class="summary-item">
+<div class="si-num">10</div>
+<div class="si-text"><strong>USB Restriction</strong>Blocked all removable storage devices via GPO</div>
+</div>
+<div class="summary-item">
+<div class="si-num">11</div>
+<div class="si-text"><strong>Policy Updates</strong>Forced policy refresh with gpupdate /force</div>
+</div>
+<div class="summary-item">
+<div class="si-num">12</div>
+<div class="si-text"><strong>Verification</strong>Verified all policies with gpresult /r and HTML report</div>
+</div>
+</div>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon blue">&#9432;</div>
+<div class="card-title">Key Takeaways</div>
+</div>
+<div class="card-desc" style="margin-bottom:12px">Before moving to production environments, remember these enterprise administration principles:</div>
+<table>
+<thead><tr><th>Principle</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td>Centralized Management</td><td>Configure once, apply everywhere. GPOs eliminate manual per-machine configuration.</td></tr>
+<tr><td>DNS is Critical</td><td>Without correct DNS pointing to DC1, nothing works &mdash; not domain join, not authentication, not GPO.</td></tr>
+<tr><td>OUs Enable Targeting</td><td>Organizational Units allow you to apply different policies to different departments.</td></tr>
+<tr><td>Computer vs User Config</td><td>Computer policies apply at boot; user policies apply at logon. Choose the right scope.</td></tr>
+<tr><td>Always Verify</td><td>Use gpresult and gpresult /h to confirm policies. Never assume gpupdate succeeded.</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="card">
+<div class="card-header">
+<div class="card-icon cyan">&#8644;</div>
+<div class="card-title">The Complete Workflow</div>
+</div>
+<div class="arch">
+<div class="arch-row"><div class="arch-box dc">Active Directory Setup</div></div>
+<div class="arch-arrow">&#9660;</div>
+<div class="arch-row"><div class="arch-box pc">Client Preparation</div></div>
+<div class="arch-arrow">&#9660;</div>
+<div class="arch-row"><div class="arch-box pc">Network &amp; DNS Configuration</div></div>
+<div class="arch-arrow">&#9660;</div>
+<div class="arch-row"><div class="arch-box pc">Domain Join</div></div>
+<div class="arch-arrow">&#9660;</div>
+<div class="arch-row"><div class="arch-box ou">OU Organization</div></div>
+<div class="arch-arrow">&#9660;</div>
+<div class="arch-row"><div class="arch-box gpo">Group Policy Creation</div></div>
+<div class="arch-arrow">&#9660;</div>
+<div class="arch-row"><div class="arch-box gpo">Policy Configuration</div></div>
+<div class="arch-arrow">&#9660;</div>
+<div class="arch-row"><div class="arch-box gpo">GPO Linking to OU</div></div>
+<div class="arch-arrow">&#9660;</div>
+<div class="arch-row"><div class="arch-box pc">gpupdate /force &amp; gpresult /r</div></div>
+<div class="arch-arrow">&#9660;</div>
+<div class="arch-row"><div class="arch-box pc">Policy Enforcement Verification</div></div>
+</div>
+</div>
+
+<div class="success-card">
+<div class="icon">&#10003;</div>
+<div class="content"><strong>Congratulations!</strong> You have completed the full Active Directory Client Joining &amp; Group Policy Administration workflow. You now understand how enterprise organizations manage hundreds or thousands of Windows clients centrally from a single Domain Controller. This is the foundation of Windows enterprise administration.</div>
+</div>
+</section>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+<strong>Active Directory Client Joining &amp; Group Policy Administration</strong> &mdash; Enterprise Administration Academy
+</div>
+
+<script>
+// Table of Contents
+(function(){
+var sections = [
+"Introduction to Enterprise Client Management",
+"Active Directory Architecture Overview",
+"Windows 10 Client Preparation",
+"VirtualBox Network Configuration",
+"Client IP Configuration",
+"DNS Configuration Fundamentals",
+"Connectivity Verification",
+"Domain Joining Process",
+"Domain Authentication Verification",
+"Computer Object Verification",
+"Moving Computer Objects into OUs",
+"Introduction to Group Policy",
+"Group Policy Management Console",
+"Creating a New GPO",
+"Linking GPO to Organizational Units",
+"Password Policy Configuration",
+"Control Panel Restriction Policy",
+"Desktop Wallpaper Policy",
+"USB Restriction Policy",
+"Force Policy Update",
+"GPO Verification",
+"Testing Applied Restrictions",
+"Enterprise Administration Summary"
+];
+var grid = document.getElementById('tocGrid');
+sections.forEach(function(name,i){
+var a = document.createElement('a');
+a.href = '#sec'+(i+1);
+a.className = 'toc-item';
+var num = document.createElement('span');
+num.className = 'toc-num';
+num.textContent = String(i+1).padStart(2,'0');
+a.appendChild(num);
+a.appendChild(document.createTextNode(name));
+grid.appendChild(a);
+});
+
+// Scroll nav
+var nav = document.getElementById('scrollNav');
+var threshold = window.innerHeight * 0.6;
+window.addEventListener('scroll',function(){
+if(window.scrollY > threshold){
+nav.classList.add('show');
+}else{
+nav.classList.remove('show');
+}
+// highlight active
+var links = nav.querySelectorAll('a');
+var current = '';
+for(var i=sections.length-1;i>=0;i--){
+var el = document.getElementById('sec'+(i+1));
+if(el && el.getBoundingClientRect().top <= 200){
+current = '#sec'+(i+1);
+break;
+}
+}
+links.forEach(function(l){
+l.classList.remove('active');
+if(l.getAttribute('href')===current) l.classList.add('active');
+});
+});
+sections.forEach(function(name,i){
+var a = document.createElement('a');
+a.href = '#sec'+(i+1);
+a.textContent = name;
+nav.appendChild(a);
+});
+})();
+
+// Expandable sections
+document.querySelectorAll('.expand-trigger').forEach(function(btn){
+btn.addEventListener('click',function(){
+var parent = this.parentElement;
+parent.classList.toggle('open');
+});
+});
+
+// Tab panels
+document.querySelectorAll('.tabs').forEach(function(tabs){
+var btns = tabs.querySelectorAll('.tab-btn');
+var panels = tabs.parentElement.querySelectorAll('.tab-panel');
+btns.forEach(function(btn,i){
+btn.addEventListener('click',function(){
+btns.forEach(function(b){b.classList.remove('active')});
+this.classList.add('active');
+panels.forEach(function(p){p.classList.remove('active')});
+if(panels[i]) panels[i].classList.add('active');
+});
+});
+});
+
+// Command simulation
+function runSim(btn){
+var sim = btn.closest('.cmd-sim');
+var body = sim.querySelector('.cmd-sim-body');
+var cmd = sim.getAttribute('data-command');
+var output = sim.getAttribute('data-output');
+var promptMatch = body.innerHTML.match(/<span class="typing">([^<]*)<\/span>/);
+var typedText = cmd;
+body.innerHTML = '<span class="prompt">C:\\Users\\yashika&gt;</span> <span class="typing"></span>';
+var typingSpan = body.querySelector('.typing');
+var idx = 0;
+btn.disabled = true;
+btn.textContent = 'Running...';
+function typeChar(){
+if(idx < typedText.length){
+typingSpan.textContent += typedText.charAt(idx);
+idx++;
+setTimeout(typeChar,25);
+}else{
+setTimeout(function(){
+body.innerHTML += '\n' + output.replace(/\\n/g,'\n');
+body.innerHTML = body.innerHTML.replace(/\n/g,'<br>');
+btn.disabled = false;
+btn.textContent = 'Run';
+},300);
+}
+}
+typeChar();
+}
+
+// Auto-highlight
+document.querySelectorAll('a[href^="#"]').forEach(function(a){
+a.addEventListener('click',function(e){
+e.preventDefault();
+var target = document.querySelector(this.getAttribute('href'));
+if(target){
+target.scrollIntoView({behavior:'smooth',block:'start'});
+}
+});
+});
+</script>
+
+</body>
+</html>
